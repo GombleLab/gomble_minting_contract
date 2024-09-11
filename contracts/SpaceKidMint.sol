@@ -1,6 +1,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
@@ -10,7 +11,7 @@ import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/ISpaceKid.sol";
 
-contract SpaceKidMint is OwnableUpgradeable {
+contract SpaceKidMint is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using ECDSA for bytes32;
 
     struct StageInfo {
@@ -34,7 +35,6 @@ contract SpaceKidMint is OwnableUpgradeable {
 
     event MintByOg(address owner, uint256[] ogIds, uint256 count);
     event MintByStage(address owner, uint256 stage, uint256 count);
-    event Mint(address owner, uint256 tokenId);
     event SetStageInfo(uint256 stage, uint256 startTime, uint256 endTime, uint256 maxMint);
 
     function initialize(
@@ -82,7 +82,7 @@ contract SpaceKidMint is OwnableUpgradeable {
         emit MintByOg(user, ogIds, count);
     }
 
-    function mintByStage(uint256 stage) external {
+    function mintByStage(uint256 stage) external nonReentrant {
         StageInfo memory stageInfo = _stageInfos[stage];
         require(stageInfo.registered, 'INVALID STAGE');
         require(stageInfo.startTime <= block.timestamp, 'NOT STARTED');

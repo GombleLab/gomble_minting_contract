@@ -19,6 +19,8 @@ contract SpaceKid is ERC721Enumerable, Ownable {
     event ChangeMinter(address oldMinter, address newMinter);
     event FreezeMint();
     event UnfreezeMint();
+    event SetBaseURI(string baseURI);
+    event SetURIPostfix(string uriPostfix);
 
     modifier onlyMinter() {
         require(minter == msg.sender, 'INVALID MINTER');
@@ -60,10 +62,12 @@ contract SpaceKid is ERC721Enumerable, Ownable {
 
     function setBaseURI(string memory baseURI) external onlyOwner {
         __baseURI = baseURI;
+        emit SetBaseURI(baseURI);
     }
 
     function setURIPostfix(string memory uriPostfix) external onlyOwner {
         _uriPostfix = uriPostfix;
+        emit SetURIPostfix(uriPostfix);
     }
 
     function changeMinter(address newMinter) external onlyOwner {
