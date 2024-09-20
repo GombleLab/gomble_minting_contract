@@ -9,4 +9,10 @@ interface ISpaceKid {
     function tokenURI(uint256 tokenId) external view returns (string memory);
 
     function totalSupply() external view virtual returns (uint256);
+
+    function isApprovedForAll(address owner, address operator) external view returns (bool);
+
+    function ownerOf(uint256 tokenId) external view returns (address);
+
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
 }
