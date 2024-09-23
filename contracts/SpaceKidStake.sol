@@ -31,7 +31,6 @@ contract SpaceKidStake is OwnableUpgradeable, ReentrancyGuardUpgradeable, IERC72
 
     uint256 public constant BOOST_MANTISSA = 10 ** 2;
 
-    event UpdateMultiplier(uint256 index, uint256 from, uint256 to, uint256 multiplier);
     event Stake(address owner, uint256[] tokenIds, uint256 lastPoint, uint256 lastStakedTokenCount, uint256 timestamp);
     event Claim(address owner, uint256[] tokenIds);
     event SetUnlockTime(uint256 unlockTime);
@@ -71,7 +70,6 @@ contract SpaceKidStake is OwnableUpgradeable, ReentrancyGuardUpgradeable, IERC72
         if (unlockTime != 0) {
             require(unlockTime > block.timestamp, "CANNOT STAKE");
         }
-        require(unlockTime != 0 && unlockTime > block.timestamp, "CANNOT STAKE");
         require(tokenIds.length > 0, "INVALID SIZE");
         address owner = msg.sender;
         require(spaceKid.isApprovedForAll(owner, address(this)), 'NEED APPROVAL');
@@ -88,7 +86,6 @@ contract SpaceKidStake is OwnableUpgradeable, ReentrancyGuardUpgradeable, IERC72
         stakingStatus.lastPoint = getStakingPoint(owner, block.timestamp);
         stakingStatus.timestamp = block.timestamp;
         stakingStatus.lastStakedTokenCount = stakedTokens.length();
-        _stakingStatus[owner] = stakingStatus;
 
         emit Stake(owner, tokenIds, stakingStatus.lastPoint, stakingStatus.lastStakedTokenCount, stakingStatus.timestamp);
     }
@@ -169,11 +166,11 @@ contract SpaceKidStake is OwnableUpgradeable, ReentrancyGuardUpgradeable, IERC72
 
     function _getBoost(uint256 count) internal view returns (uint256) {
         if (count > 0 && count < 5) {
-            return 500;
+            return 500 * count;
         } else if (count >=5 && count < 10) {
-            return 600;
+            return 600 * count;
         } else {
-            return 750;
+            return 750 * count;
         }
     }
 
