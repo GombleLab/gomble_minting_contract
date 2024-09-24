@@ -66,7 +66,7 @@ contract SpaceKidStake is OwnableUpgradeable, ReentrancyGuardUpgradeable, IERC72
         emit SetMultiplier(multipliers);
     }
 
-    function stake(uint256[] memory tokenIds) external {
+    function stake(uint256[] memory tokenIds) external nonReentrant {
         if (unlockTime != 0) {
             require(unlockTime > block.timestamp, "CANNOT STAKE");
         }
@@ -90,7 +90,7 @@ contract SpaceKidStake is OwnableUpgradeable, ReentrancyGuardUpgradeable, IERC72
         emit Stake(owner, tokenIds, stakingStatus.lastPoint, stakingStatus.lastStakedTokenCount, stakingStatus.timestamp);
     }
 
-    function claim(uint256[] memory tokenIds) external {
+    function claim(uint256[] memory tokenIds) external nonReentrant {
         require(unlockTime != 0 && unlockTime <= block.timestamp, "CANNOT CLAIM");
         require(tokenIds.length > 0, "INVALID SIZE");
         address owner = msg.sender;
