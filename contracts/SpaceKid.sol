@@ -2,6 +2,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -15,10 +16,13 @@ contract SpaceKid is ERC721Enumerable, Ownable {
     string private __baseURI;
     string private _uriPostfix;
     bool private _mintable;
+    bool private _transferable;
 
     event ChangeMinter(address oldMinter, address newMinter);
     event FreezeMint();
     event UnfreezeMint();
+    event FreezeTransfer();
+    event UnfreezeTransfer();
     event SetBaseURI(string baseURI);
     event SetURIPostfix(string uriPostfix);
 
@@ -33,12 +37,13 @@ contract SpaceKid is ERC721Enumerable, Ownable {
         address initialOwner
     ) public ERC721(name, symbol) Ownable(initialOwner){
         _mintable = true;
+        _transferable = true;
     }
 
     function getTokensByOwner(address owner) external view returns (uint256[] memory) {
         uint256 balance = balanceOf(owner);
         uint256[] memory tokenIds = new uint256[](balance);
-        for(uint256 index = 0; index < balance; index++) {
+        for (uint256 index = 0; index < balance; index++) {
             tokenIds[index] = tokenOfOwnerByIndex(owner, index);
         }
         return tokenIds;
@@ -47,7 +52,7 @@ contract SpaceKid is ERC721Enumerable, Ownable {
     function bulkMint(address[] memory targets, uint256[] memory tokenIds) external onlyMinter {
         require(_mintable, 'MINTING IS FROZEN');
         require(targets.length == tokenIds.length, 'INVALID SIZE');
-        for(uint256 index = 0; index < tokenIds.length; index++) {
+        for (uint256 index = 0; index < tokenIds.length; index++) {
             require(super._ownerOf(tokenIds[index]) == address(0), 'ALREADY MINTED TOKEN');
             _safeMint(targets[index], tokenIds[index]);
         }
@@ -69,6 +74,16 @@ contract SpaceKid is ERC721Enumerable, Ownable {
         emit UnfreezeMint();
     }
 
+    function freezeTransfer() external onlyOwner {
+        _transferable = false;
+        emit FreezeTransfer();
+    }
+
+    function unfreezeTransfer() external onlyOwner {
+        _transferable = true;
+        emit UnfreezeTransfer();
+    }
+
     function setBaseURI(string memory baseURI) external onlyOwner {
         __baseURI = baseURI;
         emit SetBaseURI(baseURI);
@@ -83,6 +98,24 @@ contract SpaceKid is ERC721Enumerable, Ownable {
         address oldBurner = minter;
         minter = newMinter;
         emit ChangeMinter(oldBurner, newMinter);
+    }
+
+    function isMintable() external view returns (bool) {
+        return _mintable;
+    }
+
+    function isTransferable() external view returns (bool) {
+        return _transferable;
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override (ERC721, IERC721) {
+        require(_transferable, 'TRANSFER IS FROZEN');
+        super.transferFrom(from, to, tokenId);
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual override (ERC721, IERC721) {
+        require(_transferable, 'TRANSFER IS FROZEN');
+        super.safeTransferFrom(from, to, tokenId, data);
     }
 
     /**
