@@ -44,6 +44,15 @@ contract SpaceKid is ERC721Enumerable, Ownable {
         return tokenIds;
     }
 
+    function bulkMint(address[] memory targets, uint256[] memory tokenIds) external onlyMinter {
+        require(_mintable, 'MINTING IS FROZEN');
+        require(targets.length == tokenIds.length, 'INVALID SIZE');
+        for(uint256 index = 0; index < tokenIds.length; index++) {
+            require(super._ownerOf(tokenIds[index]) == address(0), 'ALREADY MINTED TOKEN');
+            _safeMint(targets[index], tokenIds[index]);
+        }
+    }
+
     function mint(address to, uint256 tokenId) external onlyMinter {
         require(_mintable, 'MINTING IS FROZEN');
         require(super._ownerOf(tokenId) == address(0), 'ALREADY MINTED TOKEN');
