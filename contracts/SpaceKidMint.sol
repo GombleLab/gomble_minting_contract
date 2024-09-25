@@ -63,6 +63,10 @@ contract SpaceKidMint is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         _setStage(stage, startTime, endTime, maxMint);
     }
 
+    function updateStageTime(uint256 stage, uint256 startTime, uint256 endTime) external onlyOwner {
+        _setStage(stage, startTime, endTime, _stageInfos[stage].maxMint);
+    }
+
     function mintByOg(uint256[] memory ogIds, uint256 count, bytes memory signature) external {
         require(ogIds.length <= count, 'INVALID COUNT');
         address user = msg.sender;
@@ -181,11 +185,9 @@ contract SpaceKidMint is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function _setStage(uint256 stage, uint256 startTime, uint256 endTime, uint256 maxMint) internal {
         require(startTime < endTime, 'INVALID TIME');
-        require(startTime > block.timestamp, 'CAN NOT SET PAST TIME');
         StageInfo memory _stageInfo = _stageInfos[stage];
         if (_stageInfo.registered) {
             require(_stageInfo.stage == stage, 'INVALID STAGE');
-            require(_stageInfo.startTime > block.timestamp, 'ALREADY STARTED');
             _stageInfo.startTime = startTime;
             _stageInfo.endTime = endTime;
             _stageInfo.maxMint = maxMint;
